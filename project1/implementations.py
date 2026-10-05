@@ -14,7 +14,7 @@ def least_squares(y, tx):
 
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
-        mse: scalar.
+        loss: scalar.
 
     >>> least_squares(np.array([0.1,0.2]), np.array([[2.3, 3.2], [1., 0.1]]))
     (array([ 0.21212121, -0.12121212]), 8.666684749742561e-33)
@@ -23,9 +23,9 @@ def least_squares(y, tx):
     n = y.shape[0]
     w = np.linalg.solve(tx.T @ tx, tx.T @ y)
     error = y - tx @ w
-    mse = (0.5/n) * (error.T @ error)
+    loss = (0.5/n) * (error.T @ error)
 
-    return w, float(mse) 
+    return w, float(loss) 
 
 def ridge_regression(y, tx, lambda_):
     """implement ridge regression.
@@ -37,7 +37,7 @@ def ridge_regression(y, tx, lambda_):
 
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
-        mse: scalar.
+        loss: scalar.
 
     >>> ridge_regression(np.array([0.1,0.2]), np.array([[2.3, 3.2], [1., 0.1]]), 0)
     array([ 0.21212121, -0.12121212])
@@ -47,9 +47,9 @@ def ridge_regression(y, tx, lambda_):
     n = y.shape[0]
     w = np.linalg.solve(tx.T @ tx + (2 * n * lambda_) * np.identity(tx.shape[1]), tx.T @ y)
     error = y - tx @ w
-    mse = (0.5/n) * (error.T @ error)
+    loss = (0.5/n) * (error.T @ error)
 
-    return w, float(mse)
+    return w, float(loss)
 
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient at w from a data sample batch of size B, where B < N, and their corresponding labels.
@@ -80,7 +80,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         gamma: a scalar denoting the stepsize
 
     Returns:
-        w: numpy arrays of shape=(2, )
+        w: numpy arrays of shape=(2,)
         loss: scalar
         
     """
@@ -109,7 +109,7 @@ def compute_gradient(y, tx, w):
         w: numpy array of shape=(2, ). The vector of model parameters.
 
     Returns:
-        An numpy array of shape (2, ) (same shape as w), containing the gradient of the loss at w.
+        An numpy array of shape (2,) (same shape as w), containing the gradient of the loss at w.
     """
     n = y.shape[0]
     e = y - tx@w
@@ -141,9 +141,9 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
     n = np.shape(y)[0] 
     error = y - tx @ w
-    mse = (0.5/n) * (error.T @ error)
+    loss = (0.5/n) * (error.T @ error)
 
-    return w, float(mse)
+    return w, float(loss)
 
 
 ##################################### Logistic Regression #####################################
