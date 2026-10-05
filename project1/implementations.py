@@ -150,5 +150,137 @@ def gradient_descent(y, tx, initial_w, max_iters, gamma):
     return float(mse), weights
 
 
+def sigmoid(t):
+    """apply sigmoid function on t.
+
+    Args:
+        t: scalar or numpy array
+
+    Returns:
+        scalar or numpy array
+
+    >>> sigmoid(np.array([0.1]))
+    array([0.52497919])
+    >>> sigmoid(np.array([0.1, 0.1]))
+    array([0.52497919, 0.52497919])
+    """
+
+    return 1/(1 + np.exp(-t))
+
+
+###################### Logistic Regression #####################################
+
+
+def calculate_loss(y, tx, w):
+    """compute the cost by negative log likelihood for logistic regression.
+
+    Args:
+        y: numpy array of shape=(N,)
+        tx: numpy array of shape=(N, D)
+        w:  numpy array of shape=(D,)
+
+    Returns:
+        loss: scalar
+
+    >>> y = np.array([0., 1.])
+    >>> tx = np.arange(4).reshape(2, 2)
+    >>> w = np.array([2., 3.])
+    >>> round(calculate_loss(y, tx, w), 8)
+    1.52429481
+    """
+    assert y.shape[0] == tx.shape[0]
+    assert tx.shape[1] == w.shape[0]
+
+    t = tx.dot(w)
+    
+    loss = np.mean(-y * t + np.log(1/sigmoid(-t)))
+
+    return float(loss)
+
+def calculate_gradient(y, tx, w):
+    """compute the gradient of loss for logistic regression.
+
+    Args:
+        y:  numpy array of shape=(N,)
+        tx: numpy array of shape=(N, D)
+        w:  numpy array of shape=(D,)
+
+    Returns:
+        a vector of shape=(D,)
+
+    >>> np.set_printoptions(8)
+    >>> y = np.array([0., 1.])
+    >>> tx = np.arange(6).reshape(2, 3)
+    >>> w = np.array([0.1, 0.2, 0.3])
+    >>> calculate_gradient(y, tx, w)
+    array([-0.10370763,
+            0.2067104 ,
+            0.51712843])
+    """
+    N = y.shape[0]
+
+    grad = 1/N * np.transpose(tx).dot(sigmoid(tx.dot(w)) - y)
+
+    return grad
+
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    """Logistic regression using gradient descent
+    Args:
+        y:  numpy array of shape=(N,)
+        tx: numpy array of shape=(N, D)
+        initial_w:  numpy array of shape=(D,)
+        max_iters: scalar denoting the total number of iterations of GD
+        gamma: scalar scalar denoting the stepsize
+
+    Returns:
+        w: numpy array of shape=(D,)
+        loss: scalar 
+        
+    """
+    w = initial_w
+
+    for _ in range(max_iters):
+
+        grad = compute_gradient(y,tx,w)
+        w = w - gamma*grad
+
+    loss = calculate_loss(y,tx,w)
+
+    return w, loss
+
+def reg_logistic_regression(y, tx, lambda_,initial_w, max_iters, gamma):
+    '''L2-norm regularized logistic regression using gradient descent
+    Args:
+        y:  numpy array of shape=(N,)
+        tx: numpy array of shape=(N, D)
+        lambda_: scalar denoting the regularization parameter
+        initial_w:  numpy array of shape=(D,)
+        max_iters: scalar denoting the total number of iterations of GD 
+        gamma: scalar denoting the stepsize
+
+    Returns:
+        w: numpy array of shape=(D,)
+        loss: scalar 
+  
+    '''
+    w = initial_w
+
+    for _ in range(max_iters):
+
+        grad = compute_gradient(y,tx,w) + 2*lambda_*w
+        w = w - gamma*grad
+
+    loss = calculate_loss(y,tx,w)
+
+    return w, loss
+
+
+
+
+
+
+
+
 
 
