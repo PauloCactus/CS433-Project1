@@ -1,7 +1,5 @@
 import numpy as np
-from helpers.py import batch_iter
-
-#TODO: implement logistic_regression and reg_logistic_regression
+from helpers import batch_iter
 
 
 def least_squares(y, tx):
@@ -25,7 +23,7 @@ def least_squares(y, tx):
     error = y - tx @ w
     loss = (0.5/n) * (error.T @ error)
 
-    return w, float(loss) 
+    return w, loss 
 
 def ridge_regression(y, tx, lambda_):
     """implement ridge regression.
@@ -49,7 +47,7 @@ def ridge_regression(y, tx, lambda_):
     error = y - tx @ w
     loss = (0.5/n) * (error.T @ error)
 
-    return w, float(loss)
+    return w, loss
 
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient at w from a data sample batch of size B, where B < N, and their corresponding labels.
@@ -87,7 +85,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
 
     w = initial_w
 
-    for (minibatch_y, minibatch_tx) in enumerate(batch_iter(y, tx, batch_size=1, num_batches=max_iters)):
+    for (minibatch_y, minibatch_tx) in batch_iter(y, tx, batch_size=1, num_batches=max_iters):
         grad = compute_stoch_gradient(minibatch_y, minibatch_tx, w)
 
         # Update model parameters
@@ -98,7 +96,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
     error = y - tx @ w
     loss = (0.5/n) * (error.T @ error)
 
-    return w, float(loss)
+    return w, loss
 
 def compute_gradient(y, tx, w):
     """Computes the gradient at w.
@@ -143,7 +141,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     error = y - tx @ w
     loss = (0.5/n) * (error.T @ error)
 
-    return w, float(loss)
+    return w, loss
 
 
 ##################################### Logistic Regression #####################################
@@ -190,7 +188,7 @@ def calculate_loss(y, tx, w):
     
     loss = np.mean(-y * t + np.log(1/sigmoid(-t)))
 
-    return float(loss)
+    return loss
 
 def calculate_gradient(y, tx, w):
     """compute the gradient of loss for logistic regression.
@@ -237,12 +235,12 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     for _ in range(max_iters):
 
-        grad = compute_gradient(y,tx,w)
+        grad = calculate_gradient(y,tx,w)
         w = w - gamma*grad
 
     loss = calculate_loss(y,tx,w)
 
-    return w, float(loss)
+    return w, loss
 
 def reg_logistic_regression(y, tx, lambda_,initial_w, max_iters, gamma):
     '''L2-norm regularized logistic regression using gradient descent
@@ -263,12 +261,12 @@ def reg_logistic_regression(y, tx, lambda_,initial_w, max_iters, gamma):
 
     for _ in range(max_iters):
 
-        grad = compute_gradient(y,tx,w) + 2*lambda_*w
+        grad = calculate_gradient(y,tx,w) + 2*lambda_*w
         w = w - gamma*grad
 
     loss = calculate_loss(y,tx,w)
 
-    return w, float(loss)
+    return w, loss
 
 
 
