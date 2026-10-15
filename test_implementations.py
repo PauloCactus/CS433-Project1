@@ -20,6 +20,7 @@ from implementations import (
 # Fixtures for Reusable Test Data
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def linear_data():
     """Simple dataset for linear regression and gradient descent tests."""
@@ -42,6 +43,7 @@ def logistic_data():
 # 1. Least Squares & Ridge Regression Tests
 # ---------------------------------------------------------------------------
 
+
 def test_least_squares_docstring():
     y = np.array([0.1, 0.2])
     tx = np.array([[2.3, 3.2], [1.0, 0.1]])
@@ -62,18 +64,23 @@ def test_ridge_regression_docstring():
 
     # Lambda = 0 should match ordinary least squares
     w0, loss0 = ridge_regression(y, tx, 0)
-    np.testing.assert_allclose(w0, np.array([0.21212121, -0.12121212]), rtol=1e-6, atol=1e-8)
+    np.testing.assert_allclose(
+        w0, np.array([0.21212121, -0.12121212]), rtol=1e-6, atol=1e-8
+    )
     np.testing.assert_allclose(loss0, 0.0, atol=1e-15)
 
     # Lambda = 1
     w1, loss1 = ridge_regression(y, tx, 1)
-    np.testing.assert_allclose(w1, np.array([0.03947092, 0.00319628]), rtol=1e-6, atol=1e-8)
+    np.testing.assert_allclose(
+        w1, np.array([0.03947092, 0.00319628]), rtol=1e-6, atol=1e-8
+    )
     assert np.isscalar(loss1) or loss1.ndim == 0
 
 
 # ---------------------------------------------------------------------------
 # 2. Gradient Descent (GD) & Stochastic Gradient Descent (SGD) Tests
 # ---------------------------------------------------------------------------
+
 
 def test_compute_gradient(linear_data):
     y, tx, w = linear_data
@@ -134,6 +141,7 @@ def test_mean_squared_error_sgd(linear_data):
 # 3. Logistic Regression & Regularized Logistic Regression Tests
 # ---------------------------------------------------------------------------
 
+
 def test_sigmoid_docstring():
     res1 = sigmoid(np.array([0.1]))
     res2 = sigmoid(np.array([0.1, 0.1]))
@@ -188,16 +196,24 @@ def test_reg_logistic_regression(logistic_data):
     lambda_ = 0.5
 
     # With lambda_ = 0, should behave identically to unregularized logistic_regression
-    w_unreg, loss_unreg = logistic_regression(y, tx, initial_w, max_iters=5, gamma=gamma)
-    w_reg0, loss_reg0 = reg_logistic_regression(y, tx, 0.0, initial_w, max_iters=5, gamma=gamma)
+    w_unreg, loss_unreg = logistic_regression(
+        y, tx, initial_w, max_iters=5, gamma=gamma
+    )
+    w_reg0, loss_reg0 = reg_logistic_regression(
+        y, tx, 0.0, initial_w, max_iters=5, gamma=gamma
+    )
     np.testing.assert_allclose(w_unreg, w_reg0, rtol=1e-7)
     np.testing.assert_allclose(loss_unreg, loss_reg0, rtol=1e-7)
 
     # 1 iteration check with non-zero lambda_
-    w1, loss1 = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters=1, gamma=gamma)
+    w1, loss1 = reg_logistic_regression(
+        y, tx, lambda_, initial_w, max_iters=1, gamma=gamma
+    )
     expected_grad = calculate_gradient(y, tx, initial_w) + 2 * lambda_ * initial_w
     expected_w1 = initial_w - gamma * expected_grad
-    expected_loss1 = calculate_loss(y, tx, expected_w1)  # Loss is returned without penalty term
+    expected_loss1 = calculate_loss(
+        y, tx, expected_w1
+    )  # Loss is returned without penalty term
 
     np.testing.assert_allclose(w1, expected_w1, rtol=1e-7)
     np.testing.assert_allclose(loss1, expected_loss1, rtol=1e-7)
