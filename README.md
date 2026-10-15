@@ -36,19 +36,24 @@ conda activate ml_proj1
 
 The public grading suite verifies function signatures, execution steps, docstrings, formatting, and file structure.
 
-#### Fast Iteration (Local Directory)
-To iterate quickly without pushing commits to GitHub, pass `.` as the link and filter out the URL format check:
+#### Local Tests
+To test quickly without pushing commits to GitHub, pass `.` as the link and filter out the URL format check:
 
 ```bash
 # From the project root:
 PYTHONPATH=. pytest -v -k "not test_github_link" --github_link . grading_tests
 ```
 
-#### Full Test Against Remote GitHub Repo
-Simulates the actual course grading system by cloning your repository at a specific commit hash:
+#### Full Test From Official Course Repo
+Run the tests after cloning the official course GitHub repository
 
 ```bash
-# 1. Format code with black (recommended by course guidelines)
+# To clone the official course repository
+git clone https://github.com/epfml/ML_course
+```
+
+```bash
+# 1. Format code with black
 black implementations.py run.py helpers.py
 
 # 2. Push your changes
@@ -56,10 +61,10 @@ git add -u
 git commit -m "Your commit message"
 git push
 
-# 3. After cloning the official course repository on your machine, run the grading suite from inside grading_tests :
+# 3. After cloning the official course repository on your machine, navigate to grading_tests and run the following pytest command:
 cd grading_tests
-pytest --github_link https://github.com/PauloCactus/CS433-Project1/tree/<COMMIT HASH> .
+pytest --github_link https://github.com/PauloCactus/CS433-Project1/tree/<commit_hash> .
 ```
 
 > **Note on Commit URLs:**  
-> The URL must point to a specific commit (`.../tree/<commit_hash>`). You can easily get this link by opening your repo on GitHub, pressing the <kbd>y</kbd> key on your keyboard, and copying the URL from the browser bar.
+> The URL must point to a specific commit (`.../tree/<commit_hash>`). You can easily get the hash of a specific commit from the GitHub project home page by clicking on commits, and then clicking on the copy icon next to the commit you want to test.
