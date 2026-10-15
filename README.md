@@ -62,7 +62,7 @@ git commit -m "Your commit message"
 git push
 
 # 3. After cloning the official course repository on your machine, navigate to grading_tests and run the following pytest command:
-cd grading_tests
+cd projects/project1/grading_tests 
 pytest --github_link https://github.com/PauloCactus/CS433-Project1/tree/<commit_hash> .
 ```
 
