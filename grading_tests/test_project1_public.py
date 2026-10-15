@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 import pytest
 
-from conftest import ATOL, GITHUB_LINK, RTOL
+from grading_tests.conftest import ATOL, GITHUB_LINK, RTOL
 
 FUNCTIONS = [
     "mean_squared_error_gd",
