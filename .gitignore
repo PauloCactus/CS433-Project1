@@ -18,3 +18,8 @@ ENV/
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+
+# Data files
+dataset/
+data/
+*.csv
