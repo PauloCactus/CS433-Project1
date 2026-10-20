@@ -110,11 +110,11 @@ def compute_gradient(y, tx, w):
 
     Args:
         y: numpy array of shape=(N, )
-        tx: numpy array of shape=(N,2)
-        w: numpy array of shape=(2, ). The vector of model parameters.
+        tx: numpy array of shape=(N, D)
+        w: numpy array of shape=(D, ). The vector of model parameters.
 
     Returns:
-        An numpy array of shape (2,) (same shape as w), containing the gradient of the loss at w.
+        An numpy array of shape (D,) (same shape as w), containing the gradient of the loss at w.
     """
     n = y.shape[0]
     e = y - tx @ w
@@ -126,13 +126,13 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
     Args:
         y: numpy array of shape=(N, )
-        tx: numpy array of shape=(N,2)
-        initial_w: numpy array of shape=(2, ). The initial guess (or the initialization) for the model parameters
+        tx: numpy array of shape=(N, D)
+        initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of GD
         gamma: a scalar denoting the stepsize
 
     Returns:
-        w: numpy arrays of shape=(2, )
+        w: numpy arrays of shape=(D, )
         loss: scalar
     """
     # Define parameters to store w and loss
