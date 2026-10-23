@@ -173,7 +173,7 @@ def sigmoid(t):
 
 
 def calculate_loss(y, tx, w):
-    """compute the cost by negative log likelihood for logistic regression.
+    """compute the cost by negative log likelihood for logistic regression y={0,1}
 
     Args:
         y: numpy array of shape=(N,)
