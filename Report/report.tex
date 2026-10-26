@@ -1,0 +1,167 @@
+\documentclass[10pt,conference,compsocconf]{IEEEtran}
+
+\usepackage{hyperref}
+
+
+\begin{document}
+\title{Application of Machine Learning in Predictive Coronary Heart Disease (MICHD) Diagnosis}
+
+\author{Samuel Perry, }
+
+
+\maketitle
+
+\section{Introduction}
+
+\section{Models and Methodology}
+
+\subsection{Model Selection}
+Considering the nature of our dataset, we decided to implement a regularized logistic regression model, whilst also allowing for the possibility of logistic regression,
+as both models are well-suited for binary classification problems. The logistic regression model is a linear model that uses the logistic function to model the probability of a binary outcome. 
+The regularized logistic regression model adds a penalty term to the loss function to prevent overfitting and improve generalization.
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \[
+        loss = \frac{1}{N} \sum_{i=1}^{N} \left( y_i - \sigma(\mathbf{w}^T x_i) \right)^2 + \lambda ||\mathbf{w}||_2^2
+    \]
+    Regularized Logistic Regression Loss Function
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \[
+        loss = \frac{1}{N} \sum_{i=1}^{N} \left( y_i - \sigma(\mathbf{w}^T x_i) \right)^2
+    \]
+    Logistic Regression Loss Function
+\end{minipage}
+\end{center}
+
+This model maps the input features to a probability of a positive diagnosis using the sigmoid function, which is defined as follows:
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \[
+        \sigma(z) = \frac{1}{1 + e^{-z}}
+    \]
+\end{minipage}
+\hfill
+\end{center}
+
+and the probability of a positive diagnosis is given by:
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \[
+        p(y=1 \mid x) = \sigma(\mathbf{w}^T x)
+    \]
+\end{minipage}
+\hfill
+\end{center}
+
+\subsection{Hyperparameter Tuning}
+
+We implemented both models as in \texttt{implementations.py}, and then used a grid search method to determine the best hyperparameters
+by performing 5-fold cross validation on the training dataset. The goal of the cross validation was to determine 
+the best hyperparameters that would maximise the mean F1 score of the model. 
+The F1 score is a good measure of a model's performance when the dataset is imbalanced, as it is for the case of MICHD diagnosis.
+
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    F1 score:
+    \[
+        F1 = 2 \cdot \frac{precision \cdot recall}{precision + recall}
+    \]
+\end{minipage}
+\hfill
+\end{center}
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    with
+    \[
+        PRECISION = \frac{TP}{TP + FP}
+    \]
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \[
+        RECALL = $$\frac{TP}{TP + FN}$$
+    \]
+\end{minipage}
+\end{center}
+
+where TP is the number of true positives, FP is the number of false positives, and FN is the number of false negatives.
+
+
+\begin{itemize}
+    \item The tuning of the regularization parameter $\lambda$ was performed by testing values in the range of $[10^{-6}, 10^{0}]$ 
+    while considering $\lambda = 0$ for the case of logistic regression. The best value of $\lambda$ was found to be $1 \times 10^{-6}$.
+    \item The tuning of the learning rate $\gamma$ was performed by testing values in the range of $[10^{-3}, 10^{0}]$.
+    The best value of $\gamma$ was found to be $0.775$.
+    \item The tuning of the threshold $\tau$ was performed by testing values in the range of $[0.1, 0.7]$.
+    The best value of $\tau$ was found to be $0.20$.
+\end{itemize}
+
+Preprocessing of the dataset was performed for each fold, which prevents data leakage and ensures that the model is evaludated on unseen data.
+
+
+\subsection{Data Preprocessing}
+Our first challenge was to determine how to best preprocess the dataset, 
+since it contained a number of features that were both non-relevant and non-filled.
+Each feature also had a different set of survey codes, which made it difficult to determine how to best assign proper values to each feature.
+We decided to select a subset of features that we deemed to be relevant to the diagnosis of MICHD, and then mapped each variables special survey codes to either NaN or 0 using the codebook's information.
+This information is available in the \testtt{run.py} file, in the \texttt{cvd_variables} dictionary, which contains the mapping of each feature to its corresponding survey codes.
+The codes and the feature descriptions were found in the dataset's documentation ~cite{noauthor_www2statdukeeducr173sta102_sp16projcodebookhtml_nodate,cdc_brfss_codebook_2015}.
+From our selected features, we removed any columns that contained purely NaN values, and then replaced any remaining NaN values with the median of the training date \texttt{x_train}.
+After removing any constant features, we standardized both training and test datasets \texttt{x_train} and \texttt{x_test} respectively, using the training set \texttt{x_train} to ensure controllable gradient descent.
+The preprocessing of the training outcome \texttt {y_train} data consisted of replacing -1 (negative diagnosis) with 0, 
+to remain consistent with our implementation of logistic and regularized logistic regression.
+
+\subsection{Optimization and Prediction}
+The optimization of the weight vector $\mathbf{w}$ was performed using gradient descent 
+via \texttt{reg_logistic_regression} or \texttt{logistic_regression} as implemented in \texttt{implementations.py}.
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    Gradient Descent in Regularized Logistic Regression:
+    \[
+        \mathbf{w} = \mathbf{w} - \gamma \nabla loss(\mathbf{w})
+    \]
+    with 
+     \[
+        \nabla loss(\mathbf{w}) = -\frac{1}{N} \sum_{i=1}^{N} (y_i - \sigma(\mathbf{w}^T x_i)) x_i + 2\lambda \mathbf{w}
+    \]
+\end{minipage}
+\hfill
+\end{center}
+
+The prediction of the outcome for test set \texttt{x_test} was performed using the optimized weight vector $\mathbf{w}$ 
+to calculate the probability of a positive diagnosis and the threshold $\tau$ to determine the final binary outcome.
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+    \centering
+    Prediction:
+    \[
+        \mathbf{y} = \begin{cases}
+            1 & \text{if } p(y = 1 \mid x) = \sigma(\mathbf{w}^T x) \geq \tau \\
+            0 & \text{otherwise}
+        \end{cases}
+    \]
+\end{minipage}
+\hfill
+\end{center}
+
+
+
+\section{Results}
+
+\section{Discussion}
