@@ -22,7 +22,7 @@ Considering the nature of our dataset, we decided to implement a regularized log
 \begin{minipage}{0.45\textwidth}
     \centering
     \[
-        \text{loss} = \frac{1}{N} \sum_{i=1}^{N} \left( y_i - \sigma(\mathbf{w}^T x_i) \right)^2 + \lambda \|\mathbf{w}\|_2^2
+        \text{loss} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(\sigma(\mathbf{w}^T \mathbf{x}_i)) + (1 - y_i) \log(1 - \sigma(\mathbf{w}^T \mathbf{x}_i)) \right] + \lambda \|\mathbf{w}\|_2^2
     \]
     Regularized Logistic Regression Loss Function
 \end{minipage}
@@ -30,7 +30,7 @@ Considering the nature of our dataset, we decided to implement a regularized log
 \begin{minipage}{0.45\textwidth}
     \centering
     \[
-        \text{loss} = \frac{1}{N} \sum_{i=1}^{N} \left( y_i - \sigma(\mathbf{w}^T x_i) \right)^2
+        \text{loss} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(\sigma(\mathbf{w}^T \mathbf{x}_i)) + (1 - y_i) \log(1 - \sigma(\mathbf{w}^T \mathbf{x}_i)) \right]
     \]
     Logistic Regression Loss Function
 \end{minipage}
@@ -125,9 +125,9 @@ The prediction of the outcome for test set \texttt{x\_test} was performed using 
     \centering
     Prediction:
     \[
-        \mathbf{y} = \begin{cases}
-            1 & \text{if } p(y = 1 \mid x) = \sigma(\mathbf{w}^T x) \geq \tau \\
-            0 & \text{otherwise}
+        \hat{y}_i = \begin{cases}
+            1 & \text{if } p(y_i = 1 \mid \mathbf{x}_i) = \sigma(\mathbf{w}^T \mathbf{x}_i) \geq \tau \\
+            0 \text{ (or } -1 \text{ for test submission)} & \text{otherwise}
         \end{cases}
     \]
 \end{minipage}
