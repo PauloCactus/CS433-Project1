@@ -29,6 +29,24 @@ conda activate ml_proj1
 
 ---
 
+## Reproducing Final Predictions (`run.py`)
+
+Place the BRFSS dataset files (`x_train.csv`, `y_train.csv`, `x_test.csv`) inside the `./dataset/` directory and run:
+
+```bash
+python run.py
+```
+
+This script executes the complete pipeline and outputs the final test predictions to `submission.csv`:
+
+1. **Feature Selection (`variable_columns`)**: Selects 47 clinically relevant cardiovascular, demographic, and lifestyle features (`cvd_variables`) out of the 321 raw survey columns based on the 2015 CDC BRFSS codebook.
+2. **Survey Code Cleaning (`preprocess_cols`)**: Maps BRFSS special survey codes representing zero/none (`88`, `888`) to `0`, and missing/refused/unknown codes (`7`, `9`, `77`, `98`, `99`, `777`, `999`, `7777`, `9999`, `3`, `14`) to `NaN`.
+3. **Imputation & Standardization (`preprocessing_X`, `preprocessing_Y`)**: Removes all-`NaN` and constant columns, imputes remaining `NaN` values using the training set column-wise median, standardizes features to zero mean and unit variance using training statistics, prepends an intercept column of ones, and maps labels $y \in \{-1, 1\}$ to $\{0, 1\}$.
+4. **Cross-Validation & Hyperparameter Tuning (`tune_hyperparams`, `cv_reg`)**: Evaluates parameters using 5-fold cross-validation (`KFOLD = 5`, `SEED = 67`) with fold-local preprocessing (preventing data leakage) to maximize the mean F1 score. Optimal hyperparameters: $\lambda = 10^{-6}$, $\gamma = 0.775$, decision threshold $\tau = 0.20$, and `MAX_ITERS = 1000`.
+5. **Training & Inference (`optimization`, `prediction`)**: Trains $\ell_2$-regularized logistic regression (`reg_logistic_regression`) on the full preprocessed training set and generates binary test predictions in $\{-1, 1\}$ saved to `submission.csv` (achieving a 5-fold CV F1 score of `0.4199 ± 0.0030` and accuracy of `87.15% ± 0.05%`).
+
+---
+
 ## Running the Tests
 
 

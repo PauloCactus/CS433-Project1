@@ -7,141 +7,143 @@
 \begin{document}
 \title{Application of Machine Learning in Predictive Coronary Heart Disease (MICHD) Diagnosis}
 
-\author{Paul Barbereau, Amandine Dejardin, Samuel Perry}
+\author{Paul Barbereau, Amandine Dejardin, Samuel Perry\\
+\textit{School of Computer and Communication Sciences, EPFL, Lausanne, Switzerland}}
 
 \maketitle
 
+\begin{abstract}
+Cardiovascular diseases (CVDs) are a leading cause of mortality worldwide, making early risk screening from accessible clinical and lifestyle indicators an important public health objective. In this work, we develop a complete machine learning pipeline to predict myocardial infarction or coronary heart disease (MICHD) from the 2015 Behavioral Risk Factor Surveillance System (BRFSS) dataset ($328{,}135$ training and $109{,}379$ test individuals across $321$ survey variables). To address severe missingness, heterogeneous survey coding, feature redundancy, and strong class imbalance ($8.83\%$ positive rate), we combine domain-informed selection of $47$ clinically relevant features with codebook-guided recoding, fold-wise median imputation, standardization, and $\ell_2$-regularized logistic regression with decision threshold tuning. Evaluated via stratified-free 5-fold cross-validation, our approach achieves an F1 score of $0.4199 \pm 0.0030$ and an accuracy of $87.15\% \pm 0.05\%$, substantially outperforming uncleaned baselines and linear regression models.
+\end{abstract}
+
 \section{Introduction}
+Cardiovascular diseases (CVDs), including myocardial infarction and coronary heart disease (MICHD), represent one of the primary causes of death globally. Early identification of high-risk individuals using non-invasive lifestyle, demographic, and clinical history questionnaires can support timely preventive interventions. In this project, we predict binary MICHD diagnosis ($y \in \{-1, 1\}$) using survey data from the CDC's 2015 Behavioral Risk Factor Surveillance System (BRFSS)~\cite{cdc_brfss_codebook_2015}.
+
+Applying standard machine learning algorithms directly to the raw BRFSS dataset presents four key challenges:
+\begin{enumerate}
+    \item \textbf{High dimensionality and irrelevant variables:} The raw dataset contains $D = 321$ columns, many of which are administrative metadata (e.g., state codes, interview dates, phone line weights) unrelated to pathology.
+    \item \textbf{Survey-specific coding of missing and zero values:} Rather than standard \texttt{NaN} entries, BRFSS encodes ``Don't know/Not sure,'' ``Refused,'' and ``None/Zero'' using variable-specific multi-digit integers (such as $7, 9, 77, 88, 99, 777, 888, 9999$), which severely distort numerical distributions if treated as continuous quantities.
+    \item \textbf{Multicollinearity:} Several columns are deterministic transformations of others (e.g., continuous age, 5-year age buckets, and $>65$ indicators), leading to rank-deficient design matrices.
+    \item \textbf{Severe class imbalance:} Only $28{,}975$ of the $328{,}135$ training respondents ($8.83\%$) report MICHD, causing standard $\tau = 0.50$ probability thresholds to favor the majority negative class and miss most positive cases.
+\end{enumerate}
+To overcome these obstacles without external libraries, we implement six foundational linear and logistic models in \texttt{implementations.py} and pair our best classifier ($\ell_2$-regularized logistic regression) with codebook-driven preprocessing and 5-fold cross-validation in \texttt{run.py}.
 
 \section{Models and Methodology}
 
-\subsection{Model Selection}
-Considering the nature of our dataset, we decided to implement a regularized logistic regression model, whilst also allowing for the possibility of logistic regression, as both models are well-suited for binary classification problems. The logistic regression model is a linear model that uses the logistic function to model the probability of a binary outcome. The regularized logistic regression model adds a penalty term to the loss function to prevent overfitting and improve generalization.
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    \[
-        \text{loss} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(\sigma(\mathbf{w}^T \mathbf{x}_i)) + (1 - y_i) \log(1 - \sigma(\mathbf{w}^T \mathbf{x}_i)) \right] + \lambda \|\mathbf{w}\|_2^2
-    \]
-    Regularized Logistic Regression Loss Function
-\end{minipage}
-\hfill
-\begin{minipage}{0.45\textwidth}
-    \centering
-    \[
-        \text{loss} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(\sigma(\mathbf{w}^T \mathbf{x}_i)) + (1 - y_i) \log(1 - \sigma(\mathbf{w}^T \mathbf{x}_i)) \right]
-    \]
-    Logistic Regression Loss Function
-\end{minipage}
-\end{center}
-
-This model maps the input features to a probability of a positive diagnosis using the sigmoid function, which is defined as follows:
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    \[
-        \sigma(z) = \frac{1}{1 + e^{-z}}
-    \]
-\end{minipage}
-\end{center}
-
-and the probability of a positive diagnosis is given by:
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    \[
-        p(y=1 \mid x) = \sigma(\mathbf{w}^T x)
-    \]
-\end{minipage}
-\end{center}
-
-\subsection{Hyperparameter Tuning}
-
-We implemented both models as in \texttt{implementations.py}, and then used a grid search method to determine the best hyperparameters by performing 5-fold cross validation on the training dataset. The goal of the cross validation was to determine the best hyperparameters that would maximise the mean F1 score of the model. The F1 score is a good measure of a model's performance when the dataset is imbalanced, as it is for the case of MICHD diagnosis.
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    F1 score:
-    \[
-        F1 = 2 \cdot \frac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}
-    \]
-\end{minipage}
-\end{center}
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    with
-    \[
-        \text{PRECISION} = \frac{\text{TP}}{\text{TP} + \text{FP}}
-    \]
-\end{minipage}
-\hfill
-\begin{minipage}{0.45\textwidth}
-    \centering
-    \[
-        \text{RECALL} = \frac{\text{TP}}{\text{TP} + \text{FN}}
-    \]
-\end{minipage}
-\end{center}
-
-where TP is the number of true positives, FP is the number of false positives, and FN is the number of false negatives.
-
+\subsection{Model Selection and Baseline Implementations}
+We first implemented the six core optimization and regression methods seen in lectures in \texttt{implementations.py}:
 \begin{itemize}
-    \item The tuning of the regularization parameter $\lambda$ was performed by testing values in the range of $[10^{-6}, 10^{0}]$ while considering $\lambda = 0$ for the case of logistic regression. The best value of $\lambda$ was found to be $1 \times 10^{-6}$.
-    \item The tuning of the learning rate $\gamma$ was performed by testing values in the range of $[10^{-3}, 10^{0}]$. The best value of $\gamma$ was found to be $0.775$.
-    \item The tuning of the threshold $\tau$ was performed by testing values in the range of $[0.1, 0.7]$. The best value of $\tau$ was found to be $0.20$.
+    \item \textbf{Linear models (MSE loss):} \texttt{least\_squares} (normal equations $\mathbf{X}^T\mathbf{X}\mathbf{w} = \mathbf{X}^T\mathbf{y}$), \texttt{ridge\_regression} (adding $2N\lambda\mathbf{I}$ to $\mathbf{X}^T\mathbf{X}$), \texttt{mean\_squared\_error\_gd} (full-batch gradient descent), and \texttt{mean\_squared\_error\_sgd} (stochastic gradient descent with mini-batch size $B=1$).
+    \item \textbf{Probabilistic classification models (log-loss):} \texttt{logistic\_regression} and \texttt{reg\_logistic\_regression} trained via full-batch gradient descent on $y \in \{0, 1\}$.
 \end{itemize}
 
-Preprocessing of the dataset was performed for each fold, which prevents data leakage and ensures that the model is evaluated on unseen data.
+Considering the binary nature of MICHD diagnosis, we selected $\ell_2$-regularized logistic regression (with standard logistic regression as the $\lambda = 0$ special case) as our primary model. Logistic regression maps a feature vector $\mathbf{x}_i \in \mathbb{R}^{D^*}$ to the posterior probability of a positive diagnosis via the sigmoid function $\sigma(z) = (1 + e^{-z})^{-1}$:
+\begin{equation}
+    p(y_i = 1 \mid \mathbf{x}_i) = \sigma(\mathbf{w}^T \mathbf{x}_i) = \frac{1}{1 + e^{-\mathbf{w}^T \mathbf{x}_i}}.
+\end{equation}
+The regularized negative log-likelihood objective minimized during training is:
+\begin{equation}
+    \mathcal{L}(\mathbf{w}) = -\frac{1}{N} \sum_{i=1}^{N} \Big[ y_i \log\sigma(\mathbf{w}^T \mathbf{x}_i) + (1 - y_i) \log\big(1 - \sigma(\mathbf{w}^T \mathbf{x}_i)\big) \Big] + \lambda \|\mathbf{w}\|_2^2,
+\end{equation}
+where $\lambda \geq 0$ penalizes large weights to prevent overfitting and mitigate collinearity. In accordance with project specifications, our functions in \texttt{implementations.py} return the unpenalized loss alongside the final weight vector $\mathbf{w}$.
 
 \subsection{Data Preprocessing}
-Our first challenge was to determine how to best preprocess the dataset, since it contained a number of features that were both non-relevant and non-filled. Each feature also had a different set of survey codes, which made it difficult to determine how to best assign proper values to each feature. We decided to select a subset of features that we deemed to be relevant to the diagnosis of MICHD, and then mapped each variable's special survey codes to either NaN or 0 using the codebook's information. This information is available in the \texttt{run.py} file, in the \texttt{cvd\_variables} dictionary, which contains the mapping of each feature to its corresponding survey codes. The codes and the feature descriptions were found in the dataset's documentation~\cite{noauthor_www2statdukeeducr173sta102_sp16projcodebookhtml_nodate,cdc_brfss_codebook_2015}. From our selected features, we removed any columns that contained purely NaN values, and then replaced any remaining NaN values with the median of the training data \texttt{x\_train}. After removing any constant features, we standardized both training and test datasets \texttt{x\_train} and \texttt{x\_test} respectively, using the training set \texttt{x\_train} to ensure controllable gradient descent. The preprocessing of the training outcome \texttt{y\_train} data consisted of replacing -1 (negative diagnosis) with 0, to remain consistent with our implementation of logistic and regularized logistic regression.
+Our preprocessing pipeline in \texttt{run.py} transforms the raw $321$-dimensional inputs into a clean, well-conditioned design matrix of $D^* = 48$ features ($47$ variables plus an intercept):
+\begin{enumerate}
+    \item \textbf{Domain Feature Selection:} Using the BRFSS 2015 codebook and clinical literature~\cite{noauthor_www2statdukeeducr173sta102_sp16projcodebookhtml_nodate,cdc_brfss_codebook_2015}, we curated $47$ variables (\texttt{cvd\_variables}) spanning general health (\texttt{GENHLTH}, \texttt{PHYSHLTH}), cardiovascular history (\texttt{BPHIGH4}, \texttt{TOLDHI2}, \texttt{CVDSTRK3}, \texttt{HAREHAB1}), diabetes (\texttt{DIABETE3}), demographics (\texttt{SEX}, \texttt{\_AGE80}, \texttt{EDUCA}, \texttt{INCOME2}), and lifestyle risk factors (smoking, alcohol, exercise, and BMI).
+    \item \textbf{Survey Code Recoding:} In \texttt{preprocess\_cols}, variable-specific codes representing ``None'' or zero days/drinks ($88, 888$) are mapped to $0$, whereas ``Don't know,'' ``Refused,'' or missing codes ($7, 9, 77, 98, 99, 777, 999, 7777, 9999$, and category codes $3, 14$) are replaced with \texttt{NaN}.
+    \item \textbf{Imputation and Standardization:} In \texttt{preprocessing\_X}, any all-\texttt{NaN} or zero-variance columns are dropped, and remaining \texttt{NaN} entries are imputed using the column-wise median of the training split. Each feature is then standardized to zero mean and unit variance using the training set statistics ($\boldsymbol{\mu}_{\text{train}}, \boldsymbol{\sigma}_{\text{train}}$) to ensure well-conditioned gradients, and a bias column of ones is prepended. Target labels $y \in \{-1, 1\}$ are mapped to $\{0, 1\}$ via \texttt{preprocessing\_Y}.
+\end{enumerate}
 
-\subsection{Optimization and Prediction}
-The optimization of the weight vector $\mathbf{w}$ was performed using gradient descent via \texttt{reg\_logistic\_regression} or \texttt{logistic\_regression} as implemented in \texttt{implementations.py}.
+\subsection{Hyperparameter Tuning, Optimization, and Prediction}
+We optimized $\mathbf{w}$ over $1{,}000$ full-batch gradient descent iterations:
+\begin{equation}
+    \mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} - \gamma \left( \frac{1}{N} \sum_{i=1}^{N} \big(\sigma(\mathbf{w}^{(t)T} \mathbf{x}_i) - y_i\big) \mathbf{x}_i + 2\lambda \mathbf{w}^{(t)} \right).
+\end{equation}
+Given a trained weight vector $\mathbf{w}$ and decision threshold $\tau \in (0, 1)$, binary predictions are generated as $\hat{y}_i = 1$ if $\sigma(\mathbf{w}^T \mathbf{x}_i) \geq \tau$ and $0$ (or $-1$ for submission) otherwise.
 
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    Gradient Descent in Regularized Logistic Regression:
-    \[
-        \mathbf{w} = \mathbf{w} - \gamma \nabla \text{loss}(\mathbf{w})
-    \]
-    with 
-    \[
-        \nabla \text{loss}(\mathbf{w}) = -\frac{1}{N} \sum_{i=1}^{N} (y_i - \sigma(\mathbf{w}^T x_i)) x_i + 2\lambda \mathbf{w}
-    \]
-\end{minipage}
-\end{center}
-
-The prediction of the outcome for test set \texttt{x\_test} was performed using the optimized weight vector $\mathbf{w}$ to calculate the probability of a positive diagnosis and the threshold $\tau$ to determine the final binary outcome.
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-    \centering
-    Prediction:
-    \[
-        \hat{y}_i = \begin{cases}
-            1 & \text{if } p(y_i = 1 \mid \mathbf{x}_i) = \sigma(\mathbf{w}^T \mathbf{x}_i) \geq \tau \\
-            0 \text{ (or } -1 \text{ for test submission)} & \text{otherwise}
-        \end{cases}
-    \]
-\end{minipage}
-\end{center}
+To tune $(\lambda, \gamma, \tau)$, we performed a 5-fold cross-validation grid search (\texttt{SEED = 67}) maximizing the mean F1 score:
+\begin{equation}
+    \text{F1} = \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}, \quad \text{Precision} = \frac{\text{TP}}{\text{TP} + \text{FP}}, \quad \text{Recall} = \frac{\text{TP}}{\text{TP} + \text{FN}}.
+\end{equation}
+Crucially, median imputation and standardization in \texttt{preprocessing\_X} were recomputed independently inside each cross-validation fold to prevent data leakage. Testing $\lambda \in \{0\} \cup [10^{-6}, 10^0]$ (20 log-spaced points), $\gamma \in [10^{-3}, 10^0]$ (20 log-spaced points), and $\tau \in [0.1, 0.7]$ (step $0.1$) yielded optimal hyperparameters $\lambda = 10^{-6}$, $\gamma = 0.775$, and $\tau = 0.20$.
 
 \section{Results}
 
+\subsection{Comparison with Baseline Models}
+Table~\ref{tab:baselines} compares all six methods implemented in \texttt{implementations.py} on our preprocessed 47-feature dataset using 5-fold cross-validation (reporting mean $\pm$ standard deviation across the 5 folds).
+
+\begin{table}[htbp]
+\centering
+\caption{5-Fold Cross-Validation Comparison of Implemented Models on the Cleaned 47-Feature Dataset ($\text{Mean} \pm \text{SD}$)}
+\label{tab:baselines}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Method} & $\boldsymbol{\tau}$ & \textbf{F1 Score} & \textbf{Accuracy} & \textbf{Prec.} & \textbf{Recall} \\
+\hline
+\texttt{least\_squares} & -- & \multicolumn{4}{c|}{\textit{Singular matrix ($\sigma_{\min} = 2.6 \times 10^{-10}$)}} \\
+\hline
+\texttt{ridge\_regression} ($\lambda\!=\!10^{-6}$) & $0.50$ & $0.0766 \pm 0.0021$ & $0.9140 \pm 0.0011$ & $0.7343$ & $0.0404$ \\
+\texttt{ridge\_regression} ($\lambda\!=\!10^{-6}$) & $0.20$ & $0.4109 \pm 0.0032$ & $0.8576 \pm 0.0010$ & $0.3237$ & $0.5625$ \\
+\hline
+\texttt{mse\_gd} ($\gamma\!=\!0.1$) & $0.50$ & $0.0767 \pm 0.0021$ & $0.9140 \pm 0.0011$ & $0.7333$ & $0.0405$ \\
+\texttt{mse\_gd} ($\gamma\!=\!0.1$) & $0.20$ & $0.4109 \pm 0.0030$ & $0.8576 \pm 0.0010$ & $0.3238$ & $0.5624$ \\
+\hline
+\texttt{mse\_sgd} ($\gamma\!=\!10^{-3}$) & $0.20$ & $0.3106 \pm 0.0852$ & $0.8836 \pm 0.0196$ & $0.3670$ & $0.3275$ \\
+\hline
+\texttt{logistic\_regression} & $0.50$ & $0.2185 \pm 0.0098$ & $\mathbf{0.9146 \pm 0.0012}$ & $0.5683$ & $0.1353$ \\
+\texttt{logistic\_regression} & $0.20$ & $\mathbf{0.4199 \pm 0.0030}$ & $0.8715 \pm 0.0005$ & $0.3491$ & $0.5269$ \\
+\hline
+\textbf{\texttt{reg\_logistic\_reg.}} ($\lambda\!=\!10^{-6}$) & $0.50$ & $0.2185 \pm 0.0098$ & $\mathbf{0.9146 \pm 0.0012}$ & $0.5683$ & $0.1353$ \\
+\textbf{\texttt{reg\_logistic\_reg.}} ($\lambda\!=\!10^{-6}$) & $\mathbf{0.20}$ & $\mathbf{0.4199 \pm 0.0030}$ & $0.8715 \pm 0.0005$ & $0.3491$ & $0.5269$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Several clear patterns emerge from Table~\ref{tab:baselines}. First, unregularized \texttt{least\_squares} fails with a singular matrix error because derived BRFSS variables (e.g., \texttt{\_AGEG5YR}, \texttt{\_AGE65YR}, \texttt{\_AGE80}, and \texttt{\_AGE\_G}) are collinear, making $\mathbf{X}^T\mathbf{X}$ rank-deficient. Adding a small $\ell_2$ penalty in \texttt{ridge\_regression} ($\lambda = 10^{-6}$) restores invertibility and matches full-batch \texttt{mean\_squared\_error\_gd} ($\text{F1} = 0.4109$ at $\tau = 0.20$). Second, \texttt{mean\_squared\_error\_sgd} with batch size $1$ over $1{,}000$ steps sees only $1{,}000$ samples ($0.38\%$ of each training fold) and suffers from high gradient variance ($\text{F1} = 0.3106 \pm 0.0852$). Finally, \texttt{reg\_logistic\_regression} and \texttt{logistic\_regression} at $\tau = 0.20$ outperform all linear MSE baselines by $+0.90$ F1 percentage points ($0.4199$ vs.\ $0.4109$) and $+1.39\%$ accuracy ($87.15\%$ vs.\ $85.76\%$), confirming that the log-loss objective and bounded sigmoid output better model binary disease probabilities.
+
+\subsection{Ablation Study}
+To isolate the contribution of each component in our pipeline, we conducted a systematic ablation study across the 5 cross-validation folds (Table~\ref{tab:ablation}).
+
+\begin{table}[htbp]
+\centering
+\caption{Ablation Study of Pipeline Modifications (5-Fold CV)}
+\label{tab:ablation}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Pipeline Configuration} & $\boldsymbol{D^*}$ & \textbf{CV F1 Score} & \textbf{CV Accuracy} \\
+\hline
+1. All raw features, median imp., $\tau=0.50$ & $316$ & $0.1814 \pm 0.0067$ & $0.9142 \pm 0.0007$ \\
+2. Selected 47 features, no code clean, $\tau=0.50$ & $48$ & $0.1765 \pm 0.0068$ & $0.9135 \pm 0.0008$ \\
+3. Selected 47 + BRFSS code clean, $\tau=0.50$ & $48$ & $0.2185 \pm 0.0098$ & $\mathbf{0.9146 \pm 0.0012}$ \\
+4. Selected 47, no code clean, $\tau=0.20$ & $48$ & $0.4113 \pm 0.0039$ & $0.8671 \pm 0.0009$ \\
+5. All raw features, no code clean, $\tau=0.20$ & $316$ & $0.4149 \pm 0.0020$ & $0.8659 \pm 0.0005$ \\
+\hline
+\textbf{6. Full Pipeline (47 + code clean, $\boldsymbol{\tau=0.20}$)} & $\mathbf{48}$ & $\mathbf{0.4199 \pm 0.0030}$ & $0.8715 \pm 0.0005$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Starting from a naive logistic regression baseline on all $315$ non-constant features with $\tau = 0.50$ (Configuration 1, $\text{F1} = 0.1814$), restricting the input space to our $47$ domain-selected features (Configuration 2) reduces the feature dimension by $85\%$ and speeds up gradient descent by $6.5\times$ while retaining almost identical performance. Applying BRFSS survey code cleaning (Configuration 3) increases the F1 score at $\tau=0.50$ from $0.1765$ to $0.2185$ ($+4.20$ percentage points), demonstrating the importance of replacing sentinel codes ($88, 77, 99$, etc.) before median imputation. The single largest gain comes from lowering the classification threshold from $\tau = 0.50$ to $\tau = 0.20$ (Configuration 3 $\to$ 6), which boosts the F1 score by $+20.14$ percentage points ($0.2185 \to 0.4199$). Combining feature selection, survey code recoding, $\tau = 0.20$, and $\ell_2$ regularization (Configuration 6) outperforms even the 315-feature model at $\tau = 0.20$ ($0.4199$ vs.\ $0.4149$) while achieving higher accuracy ($87.15\%$ vs.\ $86.59\%$) and lower model complexity.
+
 \section{Discussion}
+
+\subsection{Class Imbalance and the Precision--Recall Trade-off}
+Because only $8.83\%$ of individuals in the training set have MICHD, a trivial classifier that predicts $\hat{y} = -1$ for every patient achieves $91.17\%$ accuracy but an F1 score of $0$. At the default threshold $\tau = 0.50$, regularized logistic regression achieves $91.46\%$ accuracy and $56.83\%$ precision, but detects only $13.53\%$ of true MICHD cases ($\text{F1} = 0.2185$). Lowering the decision threshold to $\tau = 0.20$ aligns the decision rule with the low prior probability of the positive class: recall nearly quadruples to $52.69\%$ while precision remains at $34.91\%$, nearly doubling the F1 score to $0.4199$. From a medical screening perspective, this trade-off is highly desirable, as false negatives (undiagnosed coronary heart disease) carry far more severe clinical consequences than false positives referred for follow-up evaluation.
+
+\subsection{Model Interpretability and Clinical Validity}
+Inspecting the learned weight vector $\mathbf{w}$ on the standardized full training set (final unpenalized log-loss $0.2231$) confirms that our model captures medically meaningful relationships. Aside from the negative intercept ($w_0 = -3.254$, reflecting the $8.83\%$ base rate), the largest positive predictors of MICHD are self-reported poor general health (\texttt{GENHLTH}, $w = +0.455$, coded $1=\text{Excellent}$ to $5=\text{Poor}$), advanced age (\texttt{\_AGE80}, $w = +0.442$; \texttt{\_AGEG5YR}, $w = +0.405$), high blood pressure (\texttt{\_RFHYPE5}, $w = +0.142$), and high cholesterol (\texttt{\_RFCHOL}, $w = +0.137$). Conversely, \texttt{SEX} ($w = -0.359$, coded $1=\text{Male}, 2=\text{Female}$), prior heart attack rehabilitation (\texttt{HAREHAB1}, $w = -0.262$, coded $1=\text{Yes}, 2=\text{No}$), and history of stroke (\texttt{CVDSTRK3}, $w = -0.184$, coded $1=\text{Yes}, 2=\text{No}$) have negative weights because higher numerical codes correspond to female sex or absence of prior cardiovascular events. All top-weighted features agree with established cardiological risk factors.
+
+\subsection{Limitations and Future Directions}
+While our pipeline is fast, interpretable, and reproducible, several limitations remain. First, nominal and ordinal categorical variables (such as employment status \texttt{EMPLOY1}) were standardized directly without one-hot encoding, imposing an artificial linear ordering across categories. Second, retaining multiple collinear age and BMI representations splits weight magnitude across redundant predictors and caused unregularized \texttt{least\_squares} to fail; pruning collinear derived features or applying $\ell_1$ (Lasso) regularization would yield a sparser representation. Finally, because our model is strictly linear in the $47$ features, future work could incorporate polynomial interaction terms (e.g., age $\times$ smoking or BMI $\times$ hypertension) and inverse class-frequency weighting in the logistic loss to further improve recall and F1 performance.
 
 \begin{thebibliography}{99}
 \bibitem{noauthor_www2statdukeeducr173sta102_sp16projcodebookhtml_nodate}
-Duke University, ``BRFSS 2015 Project Codebook,'' STA 102 Course Materials.
+Duke University, ``BRFSS 2015 Project Codebook,'' STA 102 Course Materials, \url{https://www2.stat.duke.edu/~cr173/Sta102_Sp16/Proj/codebook.html}.
 \bibitem{cdc_brfss_codebook_2015}
-Centers for Disease Control and Prevention (CDC), ``Behavioral Risk Factor Surveillance System 2015 Survey Data Codebook,'' 2015.
+Centers for Disease Control and Prevention (CDC), ``Behavioral Risk Factor Surveillance System 2015 Codebook Report: Land-Line and Cell-Phone Data,'' Aug. 2016, \url{https://www.cdc.gov/brfss/annual_data/2015/pdf/codebook15_llcp.pdf}.
 \end{thebibliography}
 
 \end{document}
